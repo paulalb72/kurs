@@ -20,6 +20,12 @@ export default function App() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
+  // Jede Ansicht beginnt oben – sonst landet man nach dem Tab-Wechsel mitten in der Seite.
+  // Block-Rumpf: scrollTo liefert in neueren Browsern ein Promise, das React sonst als Aufräumfunktion aufrufen würde.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [view]);
+
   return (
     <div className="app">
       <Sidebar view={view} />

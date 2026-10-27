@@ -7,9 +7,23 @@ interface Props {
   className?: string;
 }
 
+const MENU_MAX_WIDTH = 320;
+const EDGE = 8;
+
+/** Unterkante des nutzbaren Bereichs – auf dem Handy liegt dort die Tab-Leiste. */
+function bottomEdge() {
+  const bar = document.querySelector('.sidebar')?.getBoundingClientRect();
+  return bar && bar.top > window.innerHeight / 2 ? bar.top : window.innerHeight;
+}
+
+/** Verschiebung nach links, damit ein Menü dieser Breite ganz auf den Bildschirm passt. */
+function shiftFor(trigger: DOMRect, width: number) {
+  return Math.max(Math.min(0, window.innerWidth - EDGE - width - trigger.left), EDGE - trigger.left);
+}
+
 export function Dropdown({ button, children, className }: Props) {
   const [open, setOpen] = useState(false);
-  const [flip, setFlip] = useState({ x: false, y: false });
+  const [pos, setPos] = useState({ left: 0, up: false });
   const ref = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -33,19 +47,30 @@ export function Dropdown({ button, children, className }: Props) {
     };
   }, [open]);
 
-  // Menü an der Fensterkante umklappen statt abschneiden.
+  // Schon vor dem ersten Frame so platzieren, dass das Menü nicht über den Rand ragt –
+  // ein überstehendes Menü lässt mobile Browser sonst den Ausschnitt verschieben.
+  const toggle = () => {
+    if (open) return setOpen(false);
+    const trigger = ref.current!.getBoundingClientRect();
+    setPos({ left: shiftFor(trigger, Math.min(MENU_MAX_WIDTH, window.innerWidth - 2 * EDGE)), up: false });
+    setOpen(true);
+  };
+
+  // Mit der echten Größe nachjustieren: so nah wie möglich am Auslöser, und nach oben, wenn unten kein Platz ist.
   useLayoutEffect(() => {
-    if (!open) return setFlip({ x: false, y: false });
-    const r = menuRef.current?.getBoundingClientRect();
-    if (!r) return;
-    setFlip({ x: r.right > window.innerWidth - 8, y: r.bottom > window.innerHeight - 8 && r.top - r.height > 60 });
+    if (!open || !ref.current || !menuRef.current) return;
+    const trigger = ref.current.getBoundingClientRect();
+    const { offsetWidth, offsetHeight } = menuRef.current;
+    const below = bottomEdge() - trigger.bottom - 6;
+    const above = trigger.top - 6;
+    setPos({ left: shiftFor(trigger, offsetWidth), up: offsetHeight > below - EDGE && above > below });
   }, [open]);
 
   return (
     <div className={cls('dd', className)} ref={ref} onClick={(e) => e.stopPropagation()}>
-      {button(open, () => setOpen((o) => !o))}
+      {button(open, toggle)}
       {open && (
-        <div ref={menuRef} className={cls('dd-menu', flip.x && 'dd-right', flip.y && 'dd-up')}>
+        <div ref={menuRef} className={cls('dd-menu', pos.up && 'dd-up')} style={{ left: pos.left }}>
           {children(() => setOpen(false))}
         </div>
       )}

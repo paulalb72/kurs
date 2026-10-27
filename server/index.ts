@@ -19,7 +19,35 @@ import { authServerMetadata, authorize, bearerChallenge, hasValidBearer, protect
 import { handleMcp } from './mcp.ts';
 
 const PORT = Number(process.env.PORT) || 3000;
-const INDEX = path.join(import.meta.dirname, '..', 'dist', 'index.html');
+const DIST = path.join(import.meta.dirname, '..', 'dist');
+const INDEX = path.join(DIST, 'index.html');
+
+// Neben der App liefert der Server nur PWA-Dateien aus (Manifest, Icons, Service Worker).
+const STATIC_TYPES: Record<string, string> = {
+  '.webmanifest': 'application/manifest+json; charset=utf-8',
+  '.png': 'image/png',
+  '.js': 'text/javascript; charset=utf-8',
+};
+
+function serveStatic(req: IncomingMessage, res: ServerResponse, pathname: string) {
+  const type = STATIC_TYPES[path.extname(pathname)];
+  if (!type) return false;
+  let content: Buffer;
+  try {
+    const file = path.resolve(DIST, `.${decodeURIComponent(pathname)}`);
+    if (!file.startsWith(DIST + path.sep)) return false; // kein Ausbrechen aus dist/
+    content = readFileSync(file);
+  } catch {
+    return false;
+  }
+  res.writeHead(200, {
+    'Content-Type': type,
+    // Der Service Worker muss bei jedem Start frisch geprüft werden, Icons dürfen eine Woche bleiben.
+    'Cache-Control': pathname === '/sw.js' || type.startsWith('application/manifest') ? 'no-cache' : 'public, max-age=604800',
+  });
+  res.end(req.method === 'HEAD' ? undefined : content);
+  return true;
+}
 
 // Die App ist eine einzige HTML-Datei; komprimiert wird sie einmal pro Build.
 let page: { mtime: number; raw: Buffer; gzip: Buffer } | null = null;
@@ -87,7 +115,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
   if (pathname === '/oauth/authorize') return authorize(req, res);
 
   if (!pathname.startsWith('/api/')) {
-    if (req.method === 'GET' || req.method === 'HEAD') return serveApp(req, res);
+    if (req.method === 'GET' || req.method === 'HEAD') return serveStatic(req, res, pathname) || serveApp(req, res);
     return json(res, 405, { error: 'Methode nicht erlaubt' });
   }
 

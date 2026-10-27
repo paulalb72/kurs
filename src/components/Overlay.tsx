@@ -46,17 +46,20 @@ export function Modal({
   onClose,
   label,
   wide,
+  sheet,
 }: {
   children: ReactNode;
   onClose: () => void;
   label: string;
   wide?: boolean;
+  /** Auf dem Handy als kompaktes Sheet von unten statt bildschirmfüllend */
+  sheet?: boolean;
 }) {
   useEscape(onClose);
   return createPortal(
     <div className="layer modal-layer">
       <div className="scrim" onClick={onClose} />
-      <div className={cls('modal', wide && 'is-wide')} role="dialog" aria-modal="true" aria-label={label}>
+      <div className={cls('modal', wide && 'is-wide', sheet && 'is-sheet')} role="dialog" aria-modal="true" aria-label={label}>
         {children}
       </div>
     </div>,

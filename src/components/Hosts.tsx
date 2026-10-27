@@ -6,6 +6,7 @@ import { HabitDrawer } from './HabitDrawer';
 import { ReviewModal } from './ReviewModal';
 import { DataModal } from './DataModal';
 import { MethodModal } from './MethodModal';
+import { MoreSheet } from './MoreSheet';
 
 export function PanelHost() {
   const panel = useUI((s) => s.panel);
@@ -21,6 +22,7 @@ export function ModalHost() {
   if (!modal) return null;
   if (modal.kind === 'review') return <ReviewModal key={modal.week} week={modal.week} />;
   if (modal.kind === 'data') return <DataModal />;
+  if (modal.kind === 'more') return <MoreSheet />;
   return <MethodModal />;
 }
 

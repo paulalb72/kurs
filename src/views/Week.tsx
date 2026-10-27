@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Flag, Inbox, NotebookPen, Plus } from 'lucide-react';
+import { CalendarPlus, Check, ChevronLeft, ChevronRight, Flag, Inbox, NotebookPen, Plus } from 'lucide-react';
 import type { Goal, Task } from '../lib/types';
 import { sortTasks, useStore } from '../lib/store';
 import { useUI } from '../lib/ui';
@@ -7,6 +7,7 @@ import { useDrop } from '../lib/dnd';
 import { milestoneInfo } from '../lib/progress';
 import { addDays, fmtShort, fmtWeekday, fromKey, isoWeek, todayKey, weekDays, weekKey } from '../lib/dates';
 import { QuickAdd } from '../components/QuickAdd';
+import { Dropdown } from '../components/Dropdown';
 import { TaskRow } from '../components/TaskRow';
 import { HabitsWeek } from '../components/Habits';
 import { ProgressBar, SectionTitle, cls, goalColor } from '../components/ui';
@@ -106,7 +107,7 @@ export function Week() {
       <HabitsWeek weekStart={first} />
 
       <div className="board">
-        <Backlog tasks={backlog} />
+        <Backlog tasks={backlog} days={days} />
         {days.slice(0, 5).map((d) => (
           <DayColumn key={d} date={d} today={today} tasks={weekTasks.filter((t) => t.date === d).sort(sortTasks)} />
         ))}
@@ -186,7 +187,43 @@ function DayColumn({ date, today, tasks }: { date: string; today: string; tasks:
   );
 }
 
-function Backlog({ tasks }: { tasks: Task[] }) {
+/** Tag per Tippen wählen – auf dem Handy gibt es kein Drag & Drop. */
+function PlanMenu({ task, days }: { task: Task; days: string[] }) {
+  const today = todayKey();
+  return (
+    <Dropdown
+      className="plan-menu"
+      button={(open, toggle) => (
+        <button type="button" className={cls('icon-btn', open && 'is-open')} onClick={toggle} aria-label={`„${task.title}“ einplanen`} title="Einplanen">
+          <CalendarPlus size={16} />
+        </button>
+      )}
+    >
+      {(close) => (
+        <div className="menu">
+          <div className="menu-label">Einplanen für</div>
+          {[...days, addDays(days[0], 7)].map((d, i) => (
+            <button
+              key={d}
+              type="button"
+              className="menu-item"
+              disabled={d < today}
+              onClick={() => {
+                useStore.getState().scheduleTask(task.id, d);
+                close();
+              }}
+            >
+              <span className="menu-text">{i === 7 ? 'Nächste Woche' : `${fmtWeekday(d)}, ${fmtShort(d)}`}</span>
+              {d === today && <span className="muted">Heute</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </Dropdown>
+  );
+}
+
+function Backlog({ tasks, days }: { tasks: Task[]; days: string[] }) {
   const milestones = useStore((s) => s.milestones);
   const goals = useStore((s) => s.goals);
   const drop = useDrop((id) => useStore.getState().scheduleTask(id, null));
@@ -216,7 +253,7 @@ function Backlog({ tasks }: { tasks: Task[] }) {
               <span className="clip">{g.label}</span>
             </div>
             {g.items.map((t) => (
-              <TaskRow key={t.id} task={t} compact showGoal={false} />
+              <TaskRow key={t.id} task={t} compact showGoal={false} extra={<PlanMenu task={t} days={days} />} />
             ))}
           </div>
         ))}

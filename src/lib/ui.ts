@@ -3,7 +3,7 @@ import type { ID } from './types';
 import { todayKey } from './dates';
 
 export type Panel = { kind: 'task' | 'milestone' | 'habit' | 'goal'; id: ID };
-export type Modal = { kind: 'review'; week: string } | { kind: 'data' } | { kind: 'method' };
+export type Modal = { kind: 'review'; week: string } | { kind: 'data' } | { kind: 'method' } | { kind: 'more' };
 
 interface UIState {
   panel: Panel | null;

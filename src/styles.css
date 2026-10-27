@@ -104,6 +104,9 @@
 }
 html {
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  /* Kein Doppeltipp-Zoom, Tipps reagieren sofort */
+  touch-action: manipulation;
 }
 body {
   margin: 0;
@@ -170,6 +173,7 @@ a {
   display: grid;
   grid-template-columns: 228px minmax(0, 1fr);
   min-height: 100vh;
+  min-height: 100dvh;
 }
 .main {
   min-width: 0;
@@ -191,6 +195,7 @@ a {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -349,6 +354,7 @@ a {
   display: grid;
   place-items: center;
   min-height: 100vh;
+  min-height: 100dvh;
   padding: 24px 16px;
   background: var(--side);
 }
@@ -1014,7 +1020,7 @@ textarea.input {
   left: 0;
   z-index: 40;
   min-width: 250px;
-  max-width: 320px;
+  max-width: min(320px, calc(100vw - 16px));
   max-height: 340px;
   overflow-y: auto;
   padding: 5px;
@@ -1023,10 +1029,6 @@ textarea.input {
   background: var(--surface);
   box-shadow: var(--shadow-lg);
   animation: pop 0.12s ease-out;
-}
-.dd-right {
-  left: auto;
-  right: 0;
 }
 .dd-up {
   top: auto;
@@ -2188,6 +2190,7 @@ a.col-head:hover .col-date {
   flex-direction: column;
   width: min(600px, 100%);
   max-height: calc(100vh - 48px);
+  max-height: calc(100dvh - 48px);
   border: 1px solid var(--border);
   border-radius: 14px;
   background: var(--surface);
@@ -2463,12 +2466,16 @@ a.col-head:hover .col-date {
   left: 50%;
   bottom: 24px;
   z-index: 60;
+  /* Sonst begrenzt left: 50% die Breite auf die halbe Seite und der Text bricht früh um */
+  width: max-content;
+  max-width: calc(100vw - 32px);
   padding: 9px 14px;
   border-radius: 10px;
   background: var(--primary);
   color: var(--on-primary);
   font-size: 13px;
   font-weight: 500;
+  text-align: center;
   box-shadow: var(--shadow-lg);
   transform: translateX(-50%);
   animation: toast 0.2s ease-out;
@@ -2524,10 +2531,150 @@ a.col-head:hover .col-date {
     padding: 28px 28px 80px;
   }
 }
+/* ============ Mobile Bausteine ============ */
+.nav-more {
+  display: none;
+}
+.nav-dot {
+  position: absolute;
+  top: 8px;
+  left: calc(50% + 7px);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--s-risk);
+  box-shadow: 0 0 0 2px var(--side);
+}
+.plan-menu {
+  opacity: 0;
+}
+.task:hover .plan-menu,
+.plan-menu:focus-within {
+  opacity: 1;
+}
+.plan-menu .icon-btn {
+  width: 26px;
+  height: 26px;
+  margin: -3px -3px -3px 0;
+}
+.plan-menu .icon-btn.is-open {
+  background: var(--hover);
+  color: var(--text);
+}
+.menu-item:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.menu-item:disabled:hover {
+  background: none;
+}
+.sheet-body {
+  gap: 18px;
+}
+.sheet-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sheet-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: var(--sunken);
+  font-size: 15px;
+  text-align: left;
+}
+.sheet-item + .sheet-item {
+  margin-top: 4px;
+}
+.sheet-item svg {
+  flex: none;
+  color: var(--text-3);
+}
+.sheet-item .ritual-hint,
+.sheet-chevron {
+  margin-left: auto;
+}
+.sheet-foot {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* ============ Touch-Geräte ============ */
+@media (hover: none), (pointer: coarse) {
+  /* Was am Desktop erst beim Überfahren erscheint, ist hier immer da */
+  .star,
+  .row-action,
+  .col-add,
+  .top-slot .dd,
+  .plan-menu {
+    opacity: 1;
+  }
+  .quickadd kbd {
+    display: none;
+  }
+  /* Unter 16 px zoomt Safari beim Antippen eines Feldes ungefragt hinein */
+  .input,
+  .quickadd input,
+  .top-slot input,
+  .col-input,
+  .inline-add input,
+  .auth-card .input {
+    font-size: 16px;
+  }
+  /* Größere Tippflächen, ohne das Layout zu verändern */
+  .check,
+  .habit-toggle {
+    position: relative;
+  }
+  .check::after,
+  .habit-toggle::after {
+    content: '';
+    position: absolute;
+    inset: -11px;
+  }
+  .task {
+    -webkit-touch-callout: none;
+  }
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+  .chip {
+    height: 32px;
+    padding: 0 12px;
+  }
+  .hdot,
+  .hdot-label {
+    width: 34px;
+  }
+  .hdot {
+    height: 34px;
+    font-size: 11px;
+  }
+  .habit-toggle {
+    width: 26px;
+    height: 26px;
+  }
+  .habit-row {
+    min-height: 46px;
+  }
+}
+
+/* ============ Handy ============ */
 @media (max-width: 860px) {
   .app {
     grid-template-columns: minmax(0, 1fr);
   }
+
+  /* Tab-Leiste unten, mit Abstand zur Home-Leiste des iPhones */
   .sidebar {
     position: fixed;
     top: auto;
@@ -2538,76 +2685,202 @@ a.col-head:hover .col-date {
     height: auto;
     flex-direction: row;
     gap: 0;
-    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    padding: 4px max(8px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(8px, env(safe-area-inset-left));
     border-right: 0;
     border-top: 1px solid var(--border);
+    background: color-mix(in srgb, var(--side) 88%, transparent);
+    -webkit-backdrop-filter: saturate(1.6) blur(18px);
+    backdrop-filter: saturate(1.6) blur(18px);
   }
   .brand,
   .side-section,
-  .side-status {
+  .side-foot {
     display: none;
   }
-  .nav,
-  .side-foot {
-    flex-direction: row;
-    margin: 0;
-  }
   .nav {
-    flex: 3;
+    flex: 1;
+    flex-direction: row;
   }
-  .side-foot {
-    flex: 2;
-  }
-  .nav-item {
+  .nav-item,
+  .nav-more {
+    position: relative;
+    display: flex;
     flex: 1;
     flex-direction: column;
     justify-content: center;
-    gap: 2px;
-    height: 48px;
+    gap: 3px;
+    height: 52px;
     padding: 0;
-    font-size: 11px;
+    font-size: 10.5px;
+    font-weight: 500;
+  }
+  .nav-item svg {
+    width: 22px;
+    height: 22px;
+  }
+  .nav-item:hover,
+  .nav-item.is-active {
+    background: none;
+  }
+  .nav-item.is-active {
+    color: var(--text);
   }
   .nav-count {
-    display: none;
+    position: absolute;
+    top: 3px;
+    left: calc(50% + 6px);
+    min-width: 17px;
+    height: 17px;
+    margin: 0;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--primary);
+    color: var(--on-primary);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 17px;
+    text-align: center;
   }
+
   .main {
-    padding: 20px 16px 100px;
+    padding: calc(16px + env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) calc(90px + env(safe-area-inset-bottom))
+      max(16px, env(safe-area-inset-left));
+  }
+  .view-head {
+    gap: 12px;
+    margin-bottom: 24px;
   }
   .view-head h1 {
-    font-size: 24px;
+    font-size: 25px;
   }
-  .star,
-  .row-action,
-  .col-add,
-  .top-slot .dd {
-    opacity: 1;
+  .today-main {
+    gap: 30px;
   }
-  .rituals {
-    grid-template-columns: 1fr;
+  .section {
+    margin-bottom: 30px;
   }
   .section-aside,
   .htable-head {
     display: none;
   }
+
+  /* Woche: Tage untereinander statt nebeneinander, „Unverplant“ am Ende */
+  .board {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    overflow: visible;
+  }
+  .col,
+  .col-stack .col {
+    min-height: 0;
+  }
+  .col-stack {
+    gap: 8px;
+  }
+  .col-backlog {
+    order: 1;
+    margin: 12px 0 0;
+  }
+  .col-list:empty {
+    display: none;
+  }
   .htable-row {
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 8px 12px;
+    gap: 10px 12px;
   }
   .htable-row .hdots {
     grid-column: 1 / -1;
     order: 3;
+    justify-content: space-between;
   }
   .focus-strip {
     grid-auto-flow: column;
     grid-template-columns: none;
-    grid-auto-columns: 74%;
+    grid-auto-columns: 78%;
     overflow-x: auto;
     padding-bottom: 4px;
+    scroll-snap-type: x mandatory;
+  }
+  .focus-card {
+    scroll-snap-align: start;
+  }
+
+  /* Panels bildschirmfüllend, Dialoge als Sheet von unten */
+  .drawer {
+    width: 100vw;
+    border-left: 0;
+  }
+  .drawer-head {
+    height: auto;
+    min-height: 52px;
+    padding: env(safe-area-inset-top) 8px 0 18px;
+  }
+  .drawer-body {
+    padding: 18px 18px 32px;
+  }
+  .drawer-foot {
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom)) 18px;
   }
   .prop {
     grid-template-columns: 104px minmax(0, 1fr);
   }
   .modal-layer {
-    padding: 12px;
+    place-items: end stretch;
+    padding: 0;
+  }
+  .modal,
+  .modal.is-wide {
+    width: 100%;
+    max-height: calc(100dvh - env(safe-area-inset-top) - 16px);
+    border-radius: 16px 16px 0 0;
+    border-bottom: 0;
+    animation: sheet 0.26s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .modal-head {
+    padding: 18px 12px 14px 20px;
+  }
+  .modal-body {
+    padding: 18px 20px 24px;
+  }
+  .modal-foot {
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  }
+  .modal.is-sheet .modal-body {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  }
+  .modal-foot .btn {
+    flex: 1;
+    height: 42px;
+  }
+  .toast {
+    bottom: calc(78px + env(safe-area-inset-bottom));
+    max-width: calc(100vw - 32px);
+  }
+
+  .rituals {
+    grid-template-columns: 1fr;
+  }
+  .level {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+  .stats {
+    gap: 6px;
+  }
+  .stat {
+    padding: 9px 10px;
+  }
+  .data-row {
+    flex-wrap: wrap;
+  }
+  .empty-hero {
+    margin-top: 4vh;
+  }
+}
+
+@keyframes sheet {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
   }
 }

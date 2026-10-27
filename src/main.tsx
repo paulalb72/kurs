@@ -8,3 +8,8 @@ createRoot(document.getElementById('root')!).render(
     <Gate />
   </StrictMode>,
 );
+
+// Service Worker nur im gebauten Zustand – im Dev-Modus würde er alte Stände festhalten.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => void navigator.serviceWorker.register('/sw.js'));
+}

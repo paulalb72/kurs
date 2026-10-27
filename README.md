@@ -25,6 +25,16 @@ Produktionsmodus lokal: `npm run build && npm start` → http://localhost:3000
 | `PUBLIC_URL` | nein | Öffentliche Adresse, z. B. `https://kurs.deine-domain.de` – nur nötig, falls der Claude-Connector hinter einem Proxy die falsche Adresse meldet |
 | `TZ` | nein | Zeitzone für „heute“, im Docker-Image `Europe/Berlin` |
 
+## Als App aufs Handy (PWA)
+
+1. Kurs auf dem iPhone in **Safari** öffnen (`https://kurs.deine-domain.de`).
+2. **Teilen**-Symbol → **Zum Home-Bildschirm** → **Hinzufügen**.
+3. Kurs vom Homescreen starten und einmal anmelden – iOS trennt die Anmeldung der Homescreen-App von Safari.
+
+Android: in Chrome über das Menü → **App installieren**.
+Die App startet auch ohne Netz; Daten laden und speichern braucht eine Verbindung.
+Auf dem Handy wird statt Drag & Drop über den Kalender-Knopf („Einplanen für …“) oder das Aufgaben-Panel geplant.
+
 ## Claude-Connector (MCP)
 
 Kurs bringt einen MCP-Server mit: `https://<deine-adresse>/mcp`. Claude kann damit Ziele, Meilensteine, Gewohnheiten und Aufgaben lesen und bearbeiten – Login per OAuth mit denselben Zugangsdaten wie die App.

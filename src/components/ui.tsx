@@ -140,7 +140,9 @@ export function Segmented<T extends string>({
 /** Zahlenfeld, das beim Tippen nicht sofort auf Min-Werte springt */
 export function NumberField({ value, onChange, min = 0 }: { value: number; onChange: (n: number) => void; min?: number }) {
   const [text, setText] = useState(String(value));
-  useEffect(() => setText(String(value)), [value]);
+  useEffect(() => {
+    setText(String(value));
+  }, [value]);
   return (
     <input
       className="input input-sm num"
