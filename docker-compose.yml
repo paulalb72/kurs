@@ -1,0 +1,14 @@
+services:
+  kurs:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      KURS_USERNAME: ${KURS_USERNAME:?KURS_USERNAME fehlt in .env}
+      KURS_PASSWORD: ${KURS_PASSWORD:?KURS_PASSWORD fehlt in .env}
+    volumes:
+      - kurs-data:/data
+
+volumes:
+  kurs-data:
