@@ -2,7 +2,7 @@ import { readFileSync, statSync } from 'node:fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
-import { BadInput, Conflict, applySync, closeDb, dbPath, readAll, replaceAll } from './db.ts';
+import { BadInput, Conflict, applySync, closeDb, dataDirIsMounted, dbPath, readAll, replaceAll } from './db.ts';
 import {
   USERNAME,
   checkCredentials,
@@ -127,6 +127,12 @@ const server = createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`Kurs läuft auf http://localhost:${PORT}  ·  Datenbank: ${dbPath}`);
+  if (dataDirIsMounted() === false) {
+    console.warn(
+      `WARNUNG: ${path.dirname(dbPath)} ist kein persistentes Volume – alle Daten gehen beim nächsten Deploy verloren. ` +
+        'In Coolify unter "Persistent Storage" ein Volume mit Ziel /data anlegen.',
+    );
+  }
 });
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {

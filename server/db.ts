@@ -1,4 +1,4 @@
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import type { Data, Goal, GoalColor, Habit, HabitLog, Milestone, Review, Task } from '../src/lib/types.ts';
@@ -6,6 +6,19 @@ import type { Data, Goal, GoalColor, Habit, HabitLog, Milestone, Review, Task } 
 const dataDir = path.resolve(process.env.DATA_DIR || path.join(import.meta.dirname, '..', 'data'));
 mkdirSync(dataDir, { recursive: true });
 export const dbPath = path.join(dataDir, 'kurs.db');
+
+/** Im Container: Ist DATA_DIR ein eingehängtes Volume? Sonst ist die Datenbank beim nächsten Deploy weg. */
+export function dataDirIsMounted(): boolean | null {
+  if (process.platform !== 'linux' || !process.env.DATA_DIR) return null;
+  try {
+    // Feld 5 jeder Zeile in mountinfo ist der Einhängepunkt.
+    return readFileSync('/proc/self/mountinfo', 'utf8')
+      .split('\n')
+      .some((line) => line.split(' ')[4] === dataDir);
+  } catch {
+    return null;
+  }
+}
 
 const db = new DatabaseSync(dbPath);
 db.exec(`

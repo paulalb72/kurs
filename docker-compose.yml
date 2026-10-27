@@ -7,6 +7,7 @@ services:
     environment:
       KURS_USERNAME: ${KURS_USERNAME:?KURS_USERNAME fehlt in .env}
       KURS_PASSWORD: ${KURS_PASSWORD:?KURS_PASSWORD fehlt in .env}
+      PUBLIC_URL: ${PUBLIC_URL:-}
     volumes:
       - kurs-data:/data
 

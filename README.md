@@ -27,10 +27,10 @@ Produktionsmodus lokal: `npm run build && npm start` → http://localhost:3000
 
 ## Claude-Connector (MCP)
 
-Kurs bringt einen MCP-Server mit: `https://<deine-adresse>/mcp`. Claude kann damit Ziele, Meilensteine und Aufgaben lesen und bearbeiten – Login per OAuth mit denselben Zugangsdaten wie die App.
+Kurs bringt einen MCP-Server mit: `https://<deine-adresse>/mcp`. Claude kann damit Ziele, Meilensteine, Gewohnheiten und Aufgaben lesen und bearbeiten – Login per OAuth mit denselben Zugangsdaten wie die App.
 
-- **claude.ai / Claude Desktop / Handy-App:** Einstellungen → Connectors → *Benutzerdefinierten Connector hinzufügen* → URL `https://<deine-adresse>/mcp`. Es öffnet sich die Kurs-Anmeldung. (Braucht eine öffentliche HTTPS-Adresse, also erst deployen.)
-- **Claude Code (auch lokal):** `claude mcp add --transport http kurs http://localhost:3000/mcp`, dann in Claude Code `/mcp` → *Authenticate*.
+- **claude.ai / Claude Desktop / Handy-App:** Einstellungen → Connectors → *Custom Connector hinzufügen* → Name `Kurs`, URL `https://<deine-adresse>/mcp` → *Verbinden*. Es öffnet sich die Kurs-Anmeldung → einloggen → *Zugriff erlauben*. Der Connector gilt danach für alle Claude-Apps mit deinem Account. (Braucht eine öffentliche HTTPS-Adresse, also erst deployen.)
+- **Claude Code:** `claude mcp add --transport http kurs https://<deine-adresse>/mcp` (lokal: `http://localhost:3000/mcp`), dann in Claude Code `/mcp` → *Authenticate*.
 
 Werkzeuge: `get_overview`, `list_tasks`, `get_week`, `create_task`, `update_task`, `create_goal`, `update_goal`, `create_milestone`, `update_milestone`, `create_habit`, `update_habit`, `log_habit`, `delete_item`, `save_review`.
 Änderungen von Claude erscheinen in der offenen App nach spätestens ~20 Sekunden.
@@ -39,7 +39,23 @@ Passwort ändern trennt alle verbundenen Clients.
 ## Online deployen
 
 **Wichtig:** `/data` muss ein persistentes Volume sein, sonst ist die Datenbank nach jedem Deploy weg.
+Fehlt es, steht beim Start eine deutliche `WARNUNG` im Log.
 SQLite heißt außerdem: genau eine Instanz laufen lassen, nicht skalieren.
+
+### Coolify (z. B. auf Hetzner)
+
+1. **DNS:** A-Record `kurs.deine-domain.de` → IP des Hetzner-Servers.
+2. **Coolify → Projekt → + New → Public Repository** → `https://github.com/paulalb72/kurs`, Branch `main`.
+3. **Build Pack:** `Dockerfile` · Base Directory `/` · **Ports Exposes:** `3000`.
+4. **Domains:** `https://kurs.deine-domain.de` – Coolify holt das Let's-Encrypt-Zertifikat selbst.
+5. **Environment Variables** (nur zur Laufzeit nötig, „Build Variable“ kann aus bleiben):
+   - `KURS_USERNAME` = dein Benutzername
+   - `KURS_PASSWORD` = ein langes Passwort
+   - `PUBLIC_URL` = `https://kurs.deine-domain.de` (für den Claude-Connector)
+6. **Persistent Storage → + Add → Volume Mount:** Destination Path `/data`.
+7. **Deploy.** Im Log sollte `Kurs läuft auf …` stehen – und keine `WARNUNG`. Den Health-Check (`/healthz`) bringt das Dockerfile mit.
+
+Updates: neuen Code nach `main` pushen und in Coolify **Redeploy** klicken (oder unter *Webhooks* Auto-Deploy einrichten). Die Daten im Volume bleiben erhalten.
 
 ### Eigener Server (VPS) mit Docker
 
